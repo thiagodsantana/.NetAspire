@@ -1,3 +1,4 @@
+using AspireTest.ApiService;
 using Microsoft.Extensions.Caching.Distributed;
 using System.Text;
 using System.Text.Json;
@@ -10,6 +11,7 @@ builder.AddServiceDefaults();
 // Add services to the container.
 builder.Services.AddProblemDetails();
 builder.AddRedisDistributedCache("cache");
+builder.AddSqlServerDbContext<BancoContext>("database");
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
@@ -23,6 +25,7 @@ app.UseSwaggerUI();
 app.MapGet("/weatherforecast", async (IDistributedCache cache) =>
 {
     var cachedForecast = await cache.GetAsync("forecast");
+
 
     if (cachedForecast is null)
     {
@@ -38,7 +41,7 @@ app.MapGet("/weatherforecast", async (IDistributedCache cache) =>
 
         await cache.SetAsync("forecast", Encoding.UTF8.GetBytes(JsonSerializer.Serialize(forecast)), new()
         {
-            AbsoluteExpiration = DateTime.Now.AddSeconds(10)
+            AbsoluteExpiration = DateTime.Now.AddMinutes(1)
         });
 
         return forecast;
